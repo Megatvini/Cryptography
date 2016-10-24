@@ -70,12 +70,4 @@ public class Main {
         }
         return res;
     }
-
-
-    public static void main(String[] args) {
-        String st1 = "cOOKING\u0000mc\u0007S\u0000LIKE\u0000A\u0000POUND\u0000OF\u0000BACON";
-        String str2 = "Cooking MC's like a pound of bacon";
-        System.out.println(scoreEnglishText(st1));
-        System.out.println(scoreEnglishText(str2));
-    }
 }
