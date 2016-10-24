@@ -25,9 +25,8 @@
         <module name="Assignment1" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="Assignment1" target="1.5" />
-      <module name="Assignment2" target="1.5" />
+    <bytecodeTargetLevel target="1.8">
+      <module name="Assignment1" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

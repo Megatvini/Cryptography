@@ -4,7 +4,6 @@ import org.apache.commons.codec.binary.Hex;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -43,26 +42,22 @@ public class Main {
         int resScore = 0;
         for (int i=0; i<text.length(); i++) {
             char c = text.charAt(i);
-            if (Character.isLetter(c))
+            if (Character.isLetter(c) || Character.isSpaceChar(c))
                 resScore++;
         }
         return resScore;
     }
 
     private static String getBestCandidate(List<String> candidates) {
-        Collections.sort(candidates, new Comparator<String>() {
-            public int compare(String o1, String o2) {
-                return scoreEnglishText(o1).compareTo(scoreEnglishText(o2));
-            }
-        });
+        Collections.sort(candidates, (o1, o2) -> scoreEnglishText(o1).compareTo(scoreEnglishText(o2)));
         Collections.reverse(candidates);
         return candidates.get(0);
     }
 
     private static List<String> generateCandidates(byte[] bytes) {
-        List<String> res = new ArrayList<String>();
-        for (char c = 0; c < Character.MAX_VALUE; c++) {
-            byte[] copy = cloneByteArrayXor(bytes, (byte) c);
+        List<String> res = new ArrayList<>();
+        for (byte b = 0; b < Byte.MAX_VALUE; b++) {
+            byte[] copy = cloneByteArrayXor(bytes, b);
             res.add(new String(copy));
         }
         return res;
@@ -78,5 +73,9 @@ public class Main {
 
 
     public static void main(String[] args) {
+        String st1 = "cOOKING\u0000mc\u0007S\u0000LIKE\u0000A\u0000POUND\u0000OF\u0000BACON";
+        String str2 = "Cooking MC's like a pound of bacon";
+        System.out.println(scoreEnglishText(st1));
+        System.out.println(scoreEnglishText(str2));
     }
 }

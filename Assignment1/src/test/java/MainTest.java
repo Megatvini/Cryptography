@@ -29,8 +29,9 @@ public class MainTest {
     @Test
     public void testDecodeSingleByteXor() throws DecoderException {
         String cipher = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
+        String expected = "Cooking MC's like a pound of bacon";
         String res = Main.decodeSingleByteXor(cipher);
-        System.out.println(res);
+        assertTrue(res.equals(expected));
     }
 
 }
