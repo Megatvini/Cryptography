@@ -29,4 +29,13 @@ public class UtilsTest {
         assertTrue(res.equals(expected));
     }
 
+    @Test
+    public void testRepeatingXor() throws DecoderException {
+        String text = "Burning 'em, if you ain't quick and nimble";
+        String key = "ICE";
+        String expected = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272";
+        String res = Utils.repeatingXor(text, key);
+        assertTrue(res.equals(expected));
+    }
+
 }

@@ -52,6 +52,17 @@ class Utils {
         return new File(resource.getFile());
     }
 
+
+    static String repeatingXor(String text, String key) {
+        byte[] textBytes = text.getBytes();
+        byte[] keyBytes = key.getBytes();
+        for (int i=0; i<textBytes.length; i++) {
+            textBytes[i] = (byte) (textBytes[i] ^ keyBytes[i%keyBytes.length]);
+        }
+//        String res = new String(textBytes);
+        return Hex.encodeHexString(textBytes);
+    }
+
     private static Integer scoreEnglishText(String text) {
         int resScore = 0;
         for (int i=0; i<text.length(); i++) {
