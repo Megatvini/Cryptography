@@ -2,17 +2,20 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Utils {
-    public static String hexToBase64(String hexString) throws DecoderException {
+class Utils {
+    static String hexToBase64(String hexString) throws DecoderException {
         byte[] bytes = Hex.decodeHex(hexString.toCharArray());
         return Base64.encodeBase64String(bytes);
     }
 
-    public static String xorHexStrings(String one, String two) throws DecoderException {
+    static String xorHexStrings(String one, String two) throws DecoderException {
         if (one.length() != two.length()) {
             throw new DecoderException("Strings must be equal length");
         }
@@ -29,10 +32,24 @@ public class Utils {
         return new String(chars);
     }
 
-    public static String decodeSingleByteXor(String hexString) throws DecoderException {
+    static String decodeSingleByteXor(String hexString) throws DecoderException {
         byte[] bytes = Hex.decodeHex(hexString.toCharArray());
         List<String> candidates = generateCandidates(bytes);
-        return getBestCandidate(candidates);
+        return getBestEnglishText(candidates);
+    }
+
+    static String getBestEnglishText(List<String> candidates) {
+        Collections.sort(candidates, (o1, o2) -> scoreEnglishText(o1).compareTo(scoreEnglishText(o2)));
+        Collections.reverse(candidates);
+        return candidates.get(0);
+    }
+
+    static File getFileFromResources(String fileName) throws FileNotFoundException {
+        ClassLoader classLoader = Utils.class.getClassLoader();
+        URL resource = classLoader.getResource(fileName);
+        if (resource == null)
+            throw new FileNotFoundException("FILE NOT FOUND " + fileName);
+        return new File(resource.getFile());
     }
 
     private static Integer scoreEnglishText(String text) {
@@ -45,22 +62,16 @@ public class Utils {
         return resScore;
     }
 
-    private static String getBestCandidate(List<String> candidates) {
-        Collections.sort(candidates, (o1, o2) -> scoreEnglishText(o1).compareTo(scoreEnglishText(o2)));
-        Collections.reverse(candidates);
-        return candidates.get(0);
-    }
-
     private static List<String> generateCandidates(byte[] bytes) {
         List<String> res = new ArrayList<>();
         for (byte b = 0; b < Byte.MAX_VALUE; b++) {
-            byte[] copy = cloneByteArrayXor(bytes, b);
+            byte[] copy = xorByteArray(bytes, b);
             res.add(new String(copy));
         }
         return res;
     }
 
-    private static byte[] cloneByteArrayXor(byte[] bytes, byte byteToXor) {
+    private static byte[] xorByteArray(byte[] bytes, byte byteToXor) {
         byte[] res = new byte[bytes.length];
         for (int i=0; i<res.length; i++) {
             res[i] = (byte) (bytes[i] ^ byteToXor);
