@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 class Utils {
     private static final int MAX_KEY_SIZE = 40;
     private static final int NUM_KEYS_TO_CHECK = 30;
+    public static final int ECB_BLOCK_SIZE_BYTES = 16;
 
     static String hexToBase64(String hexString) throws DecoderException {
         byte[] bytes = Hex.decodeHex(hexString.toCharArray());
@@ -234,5 +235,22 @@ class Utils {
 
     public static void main(String[] args) throws DecoderException, FileNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
 
+    }
+
+
+    static boolean isEncryptedWithECB(String cipher) {
+        Set<String> set = new HashSet<>();
+        int from = 0;
+        int to = ECB_BLOCK_SIZE_BYTES;
+        while (to < cipher.length()) {
+            String nextBlock = cipher.substring(from, to);
+            if (set.contains(nextBlock))
+                return true;
+            else
+                set.add(nextBlock);
+            from += ECB_BLOCK_SIZE_BYTES;
+            to += ECB_BLOCK_SIZE_BYTES;
+        }
+        return false;
     }
 }

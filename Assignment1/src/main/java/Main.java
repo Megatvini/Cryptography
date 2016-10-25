@@ -26,8 +26,17 @@ public class Main {
         task8();
     }
 
-    private static void task8() {
+    private static void task8() throws FileNotFoundException {
         System.out.println("Task #8");
+        File fileFromResources = Utils.getFileFromResources("8.txt");
+        Scanner sc = new Scanner(fileFromResources);
+        while (sc.hasNext()) {
+            String next = sc.nextLine();
+            if (Utils.isEncryptedWithECB(next)) {
+                System.out.println(next);
+            }
+        }
+        sc.close();
 
         System.out.println();
     }
