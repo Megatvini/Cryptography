@@ -33,12 +33,15 @@ public class Main {
 
     private static void task6() {
         System.out.println("Task #6");
+
         System.out.println();
     }
 
     private static void task5() {
         System.out.println("Task #5");
-
+        String text = "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal";
+        String key = "ICE";
+        System.out.println(Utils.repeatingXor(text, key));
         System.out.println();
     }
 
@@ -58,7 +61,6 @@ public class Main {
         }
 
         System.out.println(Utils.getBestEnglishText(candidates));
-        System.out.println();
     }
 
     private static void task3() throws DecoderException {
