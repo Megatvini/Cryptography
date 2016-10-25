@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 class Utils {
     private static final int MAX_KEY_SIZE = 40;
-    private static final int NUM_KEYS_TO_CHECK = 20;
+    private static final int NUM_KEYS_TO_CHECK = 30;
 
     static String hexToBase64(String hexString) throws DecoderException {
         byte[] bytes = Hex.decodeHex(hexString.toCharArray());
@@ -190,20 +190,20 @@ class Utils {
             res.add(keySize);
         }
         Collections.sort(res, (one, two) -> {
-            Double oneDistance = smallestEditDistance(encryptedBytes, one);
-            Double twoDistance = smallestEditDistance(encryptedBytes, two);
+            Double oneDistance = distanceForKey(encryptedBytes, one);
+            Double twoDistance = distanceForKey(encryptedBytes, two);
             return oneDistance.compareTo(twoDistance);
         });
         return res.subList(0, numKeys);
     }
 
-    private static Double smallestEditDistance(byte[] encryptedBytes, Integer keySize) {
+    private static Double distanceForKey(byte[] encryptedBytes, Integer keySize) {
         if (encryptedBytes.length < 2*keySize)
             throw new RuntimeException("TOO SMALL encryptedBytes");
 
-        byte[] one = Arrays.copyOfRange(encryptedBytes, 0, keySize);
-        byte[] two = Arrays.copyOfRange(encryptedBytes, keySize, 2*keySize);
-        return (double) (Utils.hammingDistance(one, two)/keySize);
+        byte[] firstBlock = Arrays.copyOfRange(encryptedBytes, 0, keySize);
+        byte[] secondBlock = Arrays.copyOfRange(encryptedBytes, keySize, 2*keySize);
+        return (double) (Utils.hammingDistance(firstBlock, secondBlock)/keySize);
     }
 
 
