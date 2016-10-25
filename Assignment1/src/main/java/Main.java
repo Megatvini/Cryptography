@@ -1,8 +1,12 @@
 import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.binary.Hex;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -11,7 +15,7 @@ import java.util.Scanner;
  * Created by Nika Doghonadze
  */
 public class Main {
-    public static void main(String[] args) throws FileNotFoundException, DecoderException {
+    public static void main(String[] args) throws FileNotFoundException, DecoderException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException {
         task1();
         task2();
         task3();
@@ -27,8 +31,17 @@ public class Main {
         System.out.println();
     }
 
-    private static void task7() {
+    private static void task7() throws FileNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
         System.out.println("Task #7");
+        File fileFromResources = Utils.getFileFromResources("7.txt");
+        String str = "";
+        String key = "YELLOW SUBMARINE";
+        Scanner sc = new Scanner(fileFromResources);
+        while (sc.hasNext())
+            str += sc.nextLine();
+        sc.close();
+        String s = Utils.decryptAESData(str, key);
+        System.out.println(s);
         System.out.println();
     }
 

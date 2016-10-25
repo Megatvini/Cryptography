@@ -2,9 +2,16 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URL;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -206,8 +213,16 @@ class Utils {
         return (double) (Utils.hammingDistance(firstBlock, secondBlock)/keySize);
     }
 
+    static String decryptAESData(String base64String, String key) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+        SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, keySpec);
+        byte[] encryptedBytes = Base64.decodeBase64(base64String.getBytes());
+        byte[] decrypted = cipher.doFinal(encryptedBytes);
+        return new String(decrypted);
+    }
 
-    public static void main(String[] args) throws DecoderException {
+    public static void main(String[] args) throws DecoderException, FileNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
 
     }
 }
