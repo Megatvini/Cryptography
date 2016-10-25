@@ -28,40 +28,22 @@ public class Main {
 
     private static void task8() {
         System.out.println("Task #8");
+
         System.out.println();
     }
 
     private static void task7() throws FileNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
         System.out.println("Task #7");
-        File fileFromResources = Utils.getFileFromResources("7.txt");
-        String str = "";
         String key = "YELLOW SUBMARINE";
-        Scanner sc = new Scanner(fileFromResources);
-        while (sc.hasNext())
-            str += sc.nextLine();
-        sc.close();
+        String str = Utils.readWholeFile("7.txt");
         String s = Utils.decryptAESData(str, key);
         System.out.println(s);
-        System.out.println();
     }
 
     private static void task6() throws FileNotFoundException {
         System.out.println("Task #6");
-        String filename = "6.txt";
-        File file = Utils.getFileFromResources(filename);
-
-        if (file == null)
-            return;
-
-        StringBuilder cypher = new StringBuilder();
-        Scanner sc = new Scanner(file);
-        while (sc.hasNext()) {
-            String nextLine = sc.next();
-            cypher.append(nextLine);
-        }
-        sc.close();
-
-        String res = Utils.decryptRepeatingKeyXor(cypher.toString());
+        String cypher = Utils.readWholeFile("6.txt");
+        String res = Utils.decryptRepeatingKeyXor(cypher);
         System.out.println(res);
     }
 

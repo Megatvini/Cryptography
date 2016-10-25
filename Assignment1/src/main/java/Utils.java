@@ -222,6 +222,16 @@ class Utils {
         return new String(decrypted);
     }
 
+    static String readWholeFile(String fileName) throws FileNotFoundException {
+        File fileFromResources = getFileFromResources(fileName);
+        String str = "";
+        Scanner sc = new Scanner(fileFromResources);
+        while (sc.hasNext())
+            str += sc.nextLine();
+        sc.close();
+        return str;
+    }
+
     public static void main(String[] args) throws DecoderException, FileNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
 
     }
