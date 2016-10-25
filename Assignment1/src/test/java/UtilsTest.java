@@ -36,8 +36,15 @@ public class UtilsTest {
         String expected = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d633" +
                 "43c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027" +
                 "630c692b20283165286326302e27282f";
-        String res = Utils.repeatingXor(text, key);
+        String res = Utils.repeatingXorHex(text, key);
         assertTrue(res.equals(expected));
+    }
+
+    @Test
+    public void testHammingDistance() {
+        String one = "this is a test";
+        String two = "wokka wokka!!!";
+        assertEquals(37, Utils.hammingDistance(one, two));
     }
 
 }

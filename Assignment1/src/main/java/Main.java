@@ -1,4 +1,5 @@
 import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -31,17 +32,31 @@ public class Main {
         System.out.println();
     }
 
-    private static void task6() {
+    private static void task6() throws FileNotFoundException {
         System.out.println("Task #6");
+        String filename = "6.txt";
+        File file = Utils.getFileFromResources(filename);
 
-        System.out.println();
+        if (file == null)
+            return;
+
+        StringBuilder cypher = new StringBuilder();
+        Scanner sc = new Scanner(file);
+        while (sc.hasNext()) {
+            String nextLine = sc.next();
+            cypher.append(nextLine);
+        }
+        sc.close();
+
+        String res = Utils.decryptRepeatingKeyXor(cypher.toString());
+        System.out.println(res);
     }
 
     private static void task5() {
         System.out.println("Task #5");
         String text = "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal";
         String key = "ICE";
-        System.out.println(Utils.repeatingXor(text, key));
+        System.out.println(Utils.repeatingXorHex(text, key));
         System.out.println();
     }
 
@@ -60,6 +75,7 @@ public class Main {
             candidates.add(Utils.decodeSingleByteXor(sc.nextLine()));
         }
 
+        sc.close();
         System.out.println(Utils.getBestEnglishText(candidates));
     }
 
