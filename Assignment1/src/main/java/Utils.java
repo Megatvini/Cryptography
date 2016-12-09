@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 class Utils {
     private static final int MAX_KEY_SIZE = 40;
     private static final int NUM_KEYS_TO_CHECK = 30;
-    public static final int ECB_BLOCK_SIZE_BYTES = 16;
+    private static final int ECB_BLOCK_SIZE_BYTES = 16;
 
     static String hexToBase64(String hexString) throws DecoderException {
         byte[] bytes = Hex.decodeHex(hexString.toCharArray());
@@ -54,7 +54,7 @@ class Utils {
 
     static String getBestEnglishText(List<String> candidates) {
         List<String> copy = new ArrayList<>(candidates);
-        Collections.sort(copy, (o1, o2) -> scoreEnglishText(o1).compareTo(scoreEnglishText(o2)));
+        copy.sort(Comparator.comparing(Utils::scoreEnglishText));
         Collections.reverse(copy);
         return copy.get(0);
     }
@@ -138,7 +138,7 @@ class Utils {
 
     private static String decryptRepeatingKeyXor(String base64Cipher, List<Integer> keySizes) {
         List<String> candidates = keySizes.stream().map(keySize -> decryptRepeatingKeyXor(base64Cipher, keySize)).collect(Collectors.toList());
-        Collections.sort(candidates, (o1, o2) -> scoreEnglishText(o1).compareTo(scoreEnglishText(o2)));
+        candidates.sort(Comparator.comparing(Utils::scoreEnglishText));
         Collections.reverse(candidates);
         return candidates.get(0);
     }
@@ -197,7 +197,7 @@ class Utils {
         for (int keySize = 1; keySize < MAX_KEY_SIZE; keySize++) {
             res.add(keySize);
         }
-        Collections.sort(res, (one, two) -> {
+        res.sort((one, two) -> {
             Double oneDistance = distanceForKey(encryptedBytes, one);
             Double twoDistance = distanceForKey(encryptedBytes, two);
             return oneDistance.compareTo(twoDistance);
