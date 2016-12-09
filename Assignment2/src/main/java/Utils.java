@@ -1,3 +1,5 @@
+import org.apache.commons.codec.binary.Hex;
+
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -8,17 +10,14 @@ import java.io.FileNotFoundException;
 import java.net.URL;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Scanner;
-
-import org.apache.commons.codec.binary.Base64;
+import java.util.*;
 
 
 /**
  * Created by Nika Doghonadze
  */
 public class Utils {
-    public static byte[] addPadding(byte[] message, int blockSize) {
+    static byte[] addPadding(byte[] message, int blockSize) {
         int resLen;
         if (message.length % blockSize != 0) {
             resLen = message.length + blockSize - message.length % blockSize;
@@ -36,18 +35,14 @@ public class Utils {
         return res;
     }
 
-    public static byte[] CBCEncryptBlock(byte[] block, byte[] lastEncryption, byte[] key)
+    private static byte[] CBCEncryptBlock(byte[] block, byte[] lastEncryption, byte[] key)
             throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException,
             BadPaddingException, IllegalBlockSizeException {
         byte[] res = xorBytes(block, lastEncryption);
-        Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
-        SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
-        cipher.init(Cipher.ENCRYPT_MODE, keySpec);
-        res = cipher.doFinal(res);
-        return res;
+        return ECBEncrypt(res, key);
     }
 
-    public static byte[] CBCEncrypt(byte[] data, byte[] key, byte[] IV)
+    private static byte[] CBCEncrypt(byte[] data, byte[] key, byte[] IV)
             throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException,
             NoSuchAlgorithmException, NoSuchPaddingException {
 
@@ -81,7 +76,7 @@ public class Utils {
         return res;
     }
 
-    public static byte[] CBCDecrypt(byte[] data, byte[] key, byte[] IV)
+    static byte[] CBCDecrypt(byte[] data, byte[] key, byte[] IV)
             throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException,
             NoSuchAlgorithmException, NoSuchPaddingException {
 
@@ -109,13 +104,29 @@ public class Utils {
             throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException,
             BadPaddingException, IllegalBlockSizeException {
 
-        Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
-        SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
-        cipher.init(Cipher.DECRYPT_MODE, keySpec);
-        byte[] res = cipher.doFinal(block);
+        byte[] res = ECBDecrypt(block, key);
         res = xorBytes(res, lastEncryption);
         return res;
     }
+
+    private static byte[] ECBDecrypt(byte[] data, byte[] key)
+            throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException,
+            BadPaddingException, IllegalBlockSizeException {
+        Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
+        SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
+        cipher.init(Cipher.DECRYPT_MODE, keySpec);
+        return cipher.doFinal(data);
+    }
+
+    private static byte[] ECBEncrypt(byte[] data, byte[] key)
+            throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException,
+            BadPaddingException, IllegalBlockSizeException {
+        Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
+        SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec);
+        return cipher.doFinal(data);
+    }
+
 
     private static byte[] removePadding(byte[] data) {
         byte[] res =  new byte[data.length - data[data.length - 1]];
@@ -123,7 +134,7 @@ public class Utils {
         return res;
     }
 
-    static File getFileFromResources(String fileName) throws FileNotFoundException {
+    private static File getFileFromResources(String fileName) throws FileNotFoundException {
         ClassLoader classLoader = Utils.class.getClassLoader();
         URL resource = classLoader.getResource(fileName);
         if (resource == null)
@@ -141,7 +152,60 @@ public class Utils {
         return str;
     }
 
+    static byte[] encryptionOracle(byte[] data)
+            throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException,
+            NoSuchAlgorithmException, NoSuchPaddingException {
+        Random random = new Random();
+        data = addRandomPadding(random, data);
+        byte[] key = generateRandomBytes(random, 16);
+        data = addPadding(data, key.length);
+        if (random.nextBoolean()) {
+            System.out.println("ECB");
+            return ECBEncrypt(data, key);
+        } else {
+            byte[] IV = generateRandomBytes(random, key.length);
+            System.out.println("CBC");
+            return CBCEncrypt(data, key, IV);
+        }
+    }
+
+    private static byte[] generateRandomBytes(Random random, int size) {
+        byte[] res = new byte[size];
+        random.nextBytes(res);
+        return res;
+    }
+
+    private static byte[] addRandomPadding(Random random, byte[] data) {
+        byte[] start = generateRandomBytes(random, 5 + random.nextInt(6));
+        byte[] end = generateRandomBytes(random, 5 + random.nextInt(6));
+        byte[] res = new byte[start.length + data.length + end.length];
+        System.arraycopy(start, 0, res, 0, start.length);
+        System.arraycopy(data, 0, res, start.length, data.length);
+        System.arraycopy(end, 0, res, start.length + data.length, end.length);
+        return res;
+    }
+
     public static void main(String[] args) throws InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, FileNotFoundException {
 
+    }
+
+    static boolean detectOracleModeIsECB(byte[] encryption) {
+        byte[][] slices = sliceBytes(encryption, 16);
+        Set<String> set = new HashSet<>();
+        for (byte[] slice : slices) {
+            set.add(Hex.encodeHexString(slice));
+        }
+        return set.size() < slices.length / 2;
+    }
+
+    private static byte[][] sliceBytes(byte[] data, int sliceSize) {
+        if (data.length % sliceSize != 0)
+            throw new RuntimeException("wrong slice or data size");
+
+        byte[][] res = new byte[data.length/sliceSize][sliceSize];
+        for (int i = 0; i < res.length; i++) {
+            System.arraycopy(data, i * sliceSize, res[i], 0, res[i].length);
+        }
+        return res;
     }
 }
