@@ -1,4 +1,5 @@
-import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.*;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -169,7 +170,24 @@ public class Utils {
         }
     }
 
-    private static byte[] generateRandomBytes(Random random, int size) {
+    private static final byte[] oracleKey = generateRandomBytes(new Random(), 16);
+    private static byte[] oraclePadding = org.apache.commons.codec.binary.Base64.decodeBase64(
+            "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg\n" +
+                    "aGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBq\n" +
+                    "dXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUg\n" +
+                    "YnkK");
+
+    static byte[] encryptionOracleWithPadding(byte[] data)
+            throws DecoderException, InvalidKeyException, BadPaddingException,
+            NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException {
+        byte[] newData = new byte[data.length + oraclePadding.length];
+        System.arraycopy(data, 0, newData, 0, data.length);
+        System.arraycopy(oraclePadding, 0, newData, data.length, oraclePadding.length);
+        newData = addPadding(newData, oracleKey.length);
+        return ECBEncrypt(newData, oracleKey);
+    }
+
+    static byte[] generateRandomBytes(Random random, int size) {
         byte[] res = new byte[size];
         random.nextBytes(res);
         return res;
@@ -183,10 +201,6 @@ public class Utils {
         System.arraycopy(data, 0, res, start.length, data.length);
         System.arraycopy(end, 0, res, start.length + data.length, end.length);
         return res;
-    }
-
-    public static void main(String[] args) throws InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, FileNotFoundException {
-
     }
 
     static boolean detectOracleModeIsECB(byte[] encryption) {
@@ -207,5 +221,75 @@ public class Utils {
             System.arraycopy(data, i * sliceSize, res[i], 0, res[i].length);
         }
         return res;
+    }
+
+    static String breakEncryptionOracle()
+            throws BadPaddingException, DecoderException, IllegalBlockSizeException,
+            NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException {
+        int blockSize = findBlockSize();
+        if (!isEcb(blockSize))
+            return "";
+
+        byte[] data = new byte[blockSize];
+        int numDecoded = 0;
+        Map<String, Byte> map = new HashMap<>();
+        while (true) {
+            for (int i = 0; i < 256; i++) {
+                byte b = (byte) i;
+                data[data.length - 1] = b;
+                byte[] encryption = encryptionOracleWithPadding(data);
+                byte[] firstBlocks = Arrays.copyOfRange(encryption, 0, blockSize * data.length/blockSize);
+                String hex = Hex.encodeHexString(firstBlocks);
+                map.put(hex, b);
+            }
+
+            byte[] dataWithoutLastByte = Arrays.copyOfRange(data, 0, data.length - numDecoded - 1);
+            byte[] bytes = encryptionOracleWithPadding(dataWithoutLastByte);
+            byte[] firstBlock = Arrays.copyOfRange(bytes, 0, blockSize * data.length/blockSize);
+            String hex = Hex.encodeHexString(firstBlock);
+            Byte lastByte = map.get(hex);
+            if (lastByte == null)
+                break;
+
+            data[data.length - 1] = lastByte;
+            numDecoded++;
+
+            if (numDecoded % blockSize == 0) {
+                byte[] newData = new byte[data.length + blockSize];
+                System.arraycopy(data, 0, newData, blockSize - 1, data.length);
+                data = newData;
+            } else {
+                System.arraycopy(data, 1, data, 0, data.length - 1);
+            }
+        }
+        byte[] res = Arrays.copyOfRange(data, data.length - numDecoded - 1, data.length - 1);
+        return new String(removePadding(res));
+    }
+
+    private static boolean isEcb(int blockSize) throws BadPaddingException, DecoderException, IllegalBlockSizeException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException {
+        byte[] data = new byte[2*blockSize];
+        byte[] encrypted = encryptionOracleWithPadding(data);
+        for (int i = 0; i < blockSize; i++) {
+            if (encrypted[i] != encrypted[i+blockSize])
+                return false;
+        }
+        return true;
+    }
+
+    private static int findBlockSize() throws BadPaddingException, DecoderException, IllegalBlockSizeException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException {
+        int size = encryptionOracleWithPadding(new byte[0]).length;
+        int i = 1;
+        while (true){
+            int curSize = encryptionOracleWithPadding(new byte[i]).length;
+            if (curSize != size)
+                return curSize - size;
+            i++;
+        }
+    }
+
+    public static void main(String[] args) {
+        int length = oraclePadding.length;
+        System.out.println(Arrays.toString(oraclePadding));
+        System.out.println(new String(oraclePadding));
     }
 }
