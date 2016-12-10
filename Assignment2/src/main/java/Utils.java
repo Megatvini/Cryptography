@@ -129,7 +129,7 @@ public class Utils {
     }
 
 
-    private static byte[] removePadding(byte[] data) {
+    static byte[] removePadding(byte[] data) {
         byte[] res =  new byte[data.length - data[data.length - 1]];
         System.arraycopy(data, 0, res, 0, res.length);
         return res;
@@ -185,6 +185,17 @@ public class Utils {
         System.arraycopy(oraclePadding, 0, newData, data.length, oraclePadding.length);
         newData = addPadding(newData, oracleKey.length);
         return ECBEncrypt(newData, oracleKey);
+    }
+
+//    private static byte[] randomPrefix = generateRandomBytes(new Random(), new Random().nextInt(100));
+    private static byte[] randomPrefix = generateRandomBytes(new Random(), 15);
+    static byte[] encryptionOracleWithPrefixAndPadding(byte[] data)
+            throws BadPaddingException, DecoderException, IllegalBlockSizeException,
+            NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException {
+        byte[] newData = new byte[randomPrefix.length + data.length];
+        System.arraycopy(randomPrefix, 0, newData, 0, randomPrefix.length);
+        System.arraycopy(data, 0, newData, randomPrefix.length, data.length);
+        return encryptionOracleWithPadding(newData);
     }
 
     private static byte[] generateRandomBytes(Random random, int size) {
@@ -342,10 +353,6 @@ public class Utils {
     }
 
     public static void main(String[] args) throws InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException {
-        Profile profile = profileFor("ndogh13@fr.eu");
-        byte[] encryption = encryptECBRandomKey(profile);
-        System.out.println(Arrays.toString(encryption));
-        Profile same = decryptECBProfileRandomKey(encryption);
-        System.out.println(same.toString());
+        System.out.println(randomPrefix.length);
     }
 }
