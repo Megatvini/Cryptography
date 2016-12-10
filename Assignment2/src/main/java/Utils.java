@@ -177,7 +177,7 @@ public class Utils {
                     "dXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUg\n" +
                     "YnkK");
 
-    static byte[] encryptionOracleWithPadding(byte[] data)
+    private static byte[] encryptionOracleWithPadding(byte[] data)
             throws DecoderException, InvalidKeyException, BadPaddingException,
             NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException {
         byte[] newData = new byte[data.length + oraclePadding.length];
@@ -187,7 +187,7 @@ public class Utils {
         return ECBEncrypt(newData, oracleKey);
     }
 
-    static byte[] generateRandomBytes(Random random, int size) {
+    private static byte[] generateRandomBytes(Random random, int size) {
         byte[] res = new byte[size];
         random.nextBytes(res);
         return res;
@@ -266,7 +266,9 @@ public class Utils {
         return new String(removePadding(res));
     }
 
-    private static boolean isEcb(int blockSize) throws BadPaddingException, DecoderException, IllegalBlockSizeException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException {
+    private static boolean isEcb(int blockSize)
+            throws BadPaddingException, DecoderException, IllegalBlockSizeException,
+            NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException {
         byte[] data = new byte[2*blockSize];
         byte[] encrypted = encryptionOracleWithPadding(data);
         for (int i = 0; i < blockSize; i++) {
@@ -276,7 +278,9 @@ public class Utils {
         return true;
     }
 
-    private static int findBlockSize() throws BadPaddingException, DecoderException, IllegalBlockSizeException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException {
+    private static int findBlockSize()
+            throws BadPaddingException, DecoderException, IllegalBlockSizeException,
+            NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException {
         int size = encryptionOracleWithPadding(new byte[0]).length;
         int i = 1;
         while (true){
@@ -287,9 +291,61 @@ public class Utils {
         }
     }
 
-    public static void main(String[] args) {
-        int length = oraclePadding.length;
-        System.out.println(Arrays.toString(oraclePadding));
-        System.out.println(new String(oraclePadding));
+    private static byte[] ecbProfileRandomKey = generateRandomBytes(new Random(), 16);
+    static byte[] encryptECBRandomKey(Profile profile)
+            throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException,
+            NoSuchAlgorithmException, NoSuchPaddingException {
+        String message = profile.toString();
+        byte[] messageBytes = addPadding(message.getBytes(), ecbProfileRandomKey.length);
+        return ECBEncrypt(messageBytes, ecbProfileRandomKey);
+    }
+
+    static Profile decryptECBProfileRandomKey(byte[] encryption)
+            throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException,
+            NoSuchAlgorithmException, NoSuchPaddingException {
+        byte[] decrypt = ECBDecrypt(encryption, ecbProfileRandomKey);
+        decrypt = removePadding(decrypt);
+        return Profile.fromString(new String (decrypt));
+    }
+
+    static Profile profileFor(String email) {
+        return new Profile(email, "10", "user");
+    }
+
+    public static class Profile {
+        String email;
+        String id;
+        String role;
+
+        private Profile(String email, String id, String role) {
+            this.email = email;
+            this.id = id;
+            this.role = role;
+        }
+
+        @Override
+        public String toString() {
+            return "email="+ email + "&uid=" + id + "&role=" + role;
+        }
+
+        static Profile fromString(String str) {
+            Map<String, String> map = new HashMap<>();
+            String[] params = str.split("&");
+            for (String param : params) {
+                String[] pair = param.split("=");
+                String key = pair[0];
+                String val = pair[1];
+                map.put(key, val);
+            }
+            return new Profile(map.get("email"), map.get("uid"), map.get("role"));
+        }
+    }
+
+    public static void main(String[] args) throws InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException {
+        Profile profile = profileFor("ndogh13@fr.eu");
+        byte[] encryption = encryptECBRandomKey(profile);
+        System.out.println(Arrays.toString(encryption));
+        Profile same = decryptECBProfileRandomKey(encryption);
+        System.out.println(same.toString());
     }
 }
