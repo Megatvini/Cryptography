@@ -129,10 +129,33 @@ public class Utils {
     }
 
 
-    static byte[] removePadding(byte[] data) {
+    static byte[] removePadding(byte[] data) throws BadPaddingException{
+        if (!hasValidPadding(data))
+            throw new BadPaddingException();
+
         byte[] res =  new byte[data.length - data[data.length - 1]];
         System.arraycopy(data, 0, res, 0, res.length);
         return res;
+    }
+
+    static boolean hasValidPadding(byte[] data) {
+        if (data.length == 0)
+            return false;
+
+        byte lastByte = data[data.length - 1];
+
+        if (lastByte == 0)
+            return false;
+
+        if (lastByte > data.length)
+            return false;
+
+        for (int i = 0; i < lastByte; i++) {
+            if (data[data.length - i - 1] != lastByte)
+                return false;
+        }
+
+        return true;
     }
 
     private static File getFileFromResources(String fileName) throws FileNotFoundException {
@@ -188,7 +211,7 @@ public class Utils {
     }
 
 //    private static byte[] randomPrefix = generateRandomBytes(new Random(), new Random().nextInt(100));
-    private static byte[] randomPrefix = generateRandomBytes(new Random(), 15);
+    private static byte[] randomPrefix = generateRandomBytes(new Random(), 150);
     static byte[] encryptionOracleWithPrefixAndPadding(byte[] data)
             throws BadPaddingException, DecoderException, IllegalBlockSizeException,
             NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException {
@@ -352,7 +375,25 @@ public class Utils {
         }
     }
 
+    private static byte[] encryptURLKey = generateRandomBytes(new Random(), 16);
+    private static byte[] encryptURLIV = generateRandomBytes(new Random(), 16);
+    private static String urlPrefix = "comment1=cooking%20MCs;userdata=";
+    private static String urlSuffix = ";comment2=%20like%20a%20pound%20of%20bacon";
+    static byte[] encryptUrlCBC(String url) throws InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException {
+        url = url.replaceAll(";", "%3B").replace("=", "%3D");
+        url = urlPrefix + url + urlSuffix;
+        return CBCEncrypt(url.getBytes(), encryptURLKey, encryptURLIV);
+    }
+
+    static String decryptUrlCBC(byte[] cipher) throws InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException {
+        byte[] bytes = CBCDecrypt(cipher, encryptURLKey, encryptURLIV);
+        return new String(bytes).replaceAll("%3B", ";").replaceAll("%3D", "=");
+    }
+
+
     public static void main(String[] args) throws InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException {
-        System.out.println(randomPrefix.length);
+//        String s = "NIKA";
+//        byte[] bytes = encryptUrlCBC(s);
+//        System.out.println(decryptUrlCBC(bytes));
     }
 }
