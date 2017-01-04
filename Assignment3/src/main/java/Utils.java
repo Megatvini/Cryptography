@@ -127,7 +127,7 @@ public class Utils {
     }
 
 
-    static byte[] removePadding(byte[] data) throws BadPaddingException{
+    private static byte[] removePadding(byte[] data) throws BadPaddingException{
         if (!hasValidPadding(data))
             throw new BadPaddingException();
 
@@ -136,7 +136,7 @@ public class Utils {
         return res;
     }
 
-    static boolean hasValidPadding(byte[] data) {
+    private static boolean hasValidPadding(byte[] data) {
         if (data.length == 0)
             return false;
 

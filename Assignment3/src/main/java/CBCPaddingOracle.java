@@ -32,7 +32,7 @@ public class CBCPaddingOracle {
     private static byte[] getRandomStringEncrypt() throws InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException {
         String randomBase64String = randomStrings[random.nextInt(randomStrings.length)];
         byte[] decodedString = Base64.decodeBase64(randomBase64String);
-        System.out.println(Arrays.toString(Utils.addPadding(decodedString, 16)));
+        System.out.println(Arrays.toString(Utils.addPadding(decodedString, key.length)));
         return Utils.CBCEncrypt(decodedString, key, iv);
     }
 
@@ -51,7 +51,7 @@ public class CBCPaddingOracle {
 
     public static void main(String[] args) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         byte[] randomEncrypt = getRandomStringEncrypt();
-        int blockLength = 16; //TODO
+        int blockLength = 16;
 
         byte[] guessed = new byte[randomEncrypt.length];
         int numBlocks = randomEncrypt.length / blockLength;
