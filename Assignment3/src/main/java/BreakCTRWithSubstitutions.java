@@ -97,7 +97,7 @@ public class BreakCTRWithSubstitutions {
     private static byte guessByte(int byteIndex, byte[][] xorData) {
         int[] score = new int[256];
         for (byte[] xor : xorData) {
-            for (int c = 0; c < 256; c++) {
+            for (int c = 30; c < 150; c++) {
                 if (byteIndex < xor.length) {
                     int ch = xor[byteIndex] ^ c;
                     if (Character.isLetter(ch) || Character.isSpaceChar(ch))
