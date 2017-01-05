@@ -6,7 +6,7 @@ import java.util.Random;
 public class MT_RNG {
     private long index;
     private long[] mt;
-    private MT_RNG(long seed) {
+    MT_RNG(long seed) {
         index = 624;
         mt = new long[624];
         mt[0] = seed;
@@ -15,7 +15,7 @@ public class MT_RNG {
         }
     }
 
-    private long extractNumber() {
+    long extractNumber() {
         if (index >= 624) {
             twist();
         }
