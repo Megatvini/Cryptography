@@ -64,7 +64,7 @@ public class Utils {
         return res;
     }
 
-    private static byte[] xorBytes(byte[] one, byte[] two) {
+    static byte[] xorBytes(byte[] one, byte[] two) {
         if (one.length != two.length)
             throw new RuntimeException("Must be same size "  + one.length + " " + two.length);
 
@@ -108,7 +108,7 @@ public class Utils {
         return res;
     }
 
-    private static byte[] ECBDecrypt(byte[] data, byte[] key)
+    static byte[] ECBDecrypt(byte[] data, byte[] key)
             throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException,
             BadPaddingException, IllegalBlockSizeException {
         Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
@@ -117,7 +117,7 @@ public class Utils {
         return cipher.doFinal(data);
     }
 
-    private static byte[] ECBEncrypt(byte[] data, byte[] key)
+    static byte[] ECBEncrypt(byte[] data, byte[] key)
             throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException,
             BadPaddingException, IllegalBlockSizeException {
         Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
@@ -177,6 +177,16 @@ public class Utils {
     static byte[] generateRandomBytes(Random random, int size) {
         byte[] res = new byte[size];
         random.nextBytes(res);
+        return res;
+    }
+
+    static byte[] intToBytesLittleEndian(int num, int numBytes) {
+        byte[] res = new byte[numBytes];
+        for (int i = 0; i < numBytes; i++) {
+            byte curByte = (byte) (num % 256);
+            res[i] = curByte;
+            num /= 256;
+        }
         return res;
     }
 }
