@@ -4,8 +4,9 @@ import java.util.Random;
  * Created by Nika Doghonadze
  */
 public class MT_RNG {
-    private long index;
-    private long[] mt;
+    long index;
+    long[] mt;
+
     MT_RNG(long seed) {
         index = 624;
         mt = new long[624];
