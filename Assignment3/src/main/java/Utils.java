@@ -8,9 +8,7 @@ import java.io.FileNotFoundException;
 import java.net.URL;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * Created by Nika Doghonadze
@@ -187,6 +185,16 @@ public class Utils {
             res[i] = curByte;
             num /= 256;
         }
+        return res;
+    }
+
+    static List<String> readFileLines(String fileName) throws FileNotFoundException {
+        List<String> res = new ArrayList<>();
+        File fileFromResources = getFileFromResources(fileName);
+        Scanner sc = new Scanner(fileFromResources);
+        while (sc.hasNext())
+            res.add(sc.nextLine());
+        sc.close();
         return res;
     }
 }
