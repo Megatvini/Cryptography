@@ -1,8 +1,4 @@
-import org.apache.commons.codec.binary.Base64;
-
-import java.io.FileNotFoundException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by Nika Doghonadze
@@ -15,13 +11,11 @@ public class BreakRepeatingKeyXOR {
         return copy.get(0);
     }
 
-    private static String repeatingXorString(String text, String key) {
-        byte[] textBytes = text.getBytes();
-        byte[] keyBytes = key.getBytes();
-        for (int i=0; i<textBytes.length; i++) {
-            textBytes[i] = (byte) (textBytes[i] ^ keyBytes[i%keyBytes.length]);
+    private static String repeatingXor(byte[] text, byte[] key) {
+        for (int i=0; i<text.length; i++) {
+            text[i] = (byte) (text[i] ^ key[i%key.length]);
         }
-        return new String(textBytes);
+        return new String(text);
     }
 
     private static Integer scoreEnglishText(String text) {
@@ -36,8 +30,8 @@ public class BreakRepeatingKeyXOR {
 
     private static List<String> generateCandidates(byte[] bytes) {
         List<String> res = new ArrayList<>();
-        for (byte b = 0; b < Byte.MAX_VALUE; b++) {
-            byte[] copy = xorByteArray(bytes, b);
+        for (int b = 0; b < 256; b++) {
+            byte[] copy = xorByteArray(bytes, (byte) b);
             res.add(new String(copy));
         }
         return res;
@@ -52,21 +46,21 @@ public class BreakRepeatingKeyXOR {
     }
 
     private static String decryptRepeatingKeyXor(byte[] cipher, int keySize) {
-        String key = findRepeatingKeyXor(cipher, keySize);
-        String cipherString = new String(cipher);
-        return repeatingXorString(cipherString, key);
+        byte[] key = findRepeatingKeyXor(cipher, keySize);
+        return repeatingXor(cipher, key);
     }
 
-    private static String findRepeatingKeyXor(byte[] cipher, int keySize) {
+    private static byte[] findRepeatingKeyXor(byte[] cipher, int keySize) {
         byte[][] blocks = breakToBlocks(cipher, keySize);
         byte[][] transposedBlocks = transposeBlocks(blocks);
-        StringBuilder res = new StringBuilder();
-        for (byte[] block: transposedBlocks) {
+
+        byte[] key = new byte[keySize];
+        for (int i = 0; i < transposedBlocks.length; i++) {
+            byte[] block = transposedBlocks[i];
             byte singleByteXorKey = findSingleByteXorKey(block);
-            res.append((char) singleByteXorKey);
+            key[i] = singleByteXorKey;
         }
-//        System.out.println("KEY FOR KEYSIZE: " + keySize + " is " + res.toString());
-        return res.toString();
+        return key;
     }
 
     private static byte findSingleByteXorKey(byte[] block) {
@@ -131,13 +125,13 @@ public class BreakRepeatingKeyXOR {
 
     private static final String FILE_NAME = "4.txt";
 
-    public static void main(String[] args) throws FileNotFoundException {
+    public static void main(String[] args) throws Exception {
         List<String> lines = Utils.readFileLines(FILE_NAME);
-        List<byte[]> byteLines = lines.stream().map(Base64::decodeBase64).collect(Collectors.toList());
-
-        byteLines = makeSameLength(byteLines);
-        byte[] cipher = truncateBytes(byteLines);
-        String res = decryptRepeatingKeyXor(cipher, Base64.decodeBase64(lines.get(0)).length);
+        String[] strings = lines.toArray(new String[lines.size()]);
+        List<byte[]> ciphers =  Arrays.asList(BreakCTRWithSubstitutions.getCTREncrypts(strings));
+        ciphers = makeSameLength(ciphers);
+        byte[] cipher = truncateBytes(ciphers);
+        String res = decryptRepeatingKeyXor(cipher, ciphers.get(0).length);
         System.out.println(res);
     }
 }

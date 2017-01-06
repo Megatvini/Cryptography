@@ -59,21 +59,13 @@ public class BreakCTRWithSubstitutions {
     private static byte[] key = Utils.generateRandomBytes(random, 16);
     private static int nonce = 0;
 
-    private static byte[][] getCTREncrypts() throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException {
-        byte[][] res = new byte[base64Strings.length][];
-        for (int i = 0; i < base64Strings.length; i++) {
-            byte[] data = Base64.decodeBase64(base64Strings[i]);
+    static byte[][] getCTREncrypts(String[] strings) throws IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException {
+        byte[][] res = new byte[strings.length][];
+        for (int i = 0; i < strings.length; i++) {
+            byte[] data = Base64.decodeBase64(strings[i]);
             res[i] = CTR.encrypt(data, key, nonce);
         }
         return res;
-    }
-
-    public static void main(String[] args) throws NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException {
-        byte[][] encrypts = getCTREncrypts();
-        byte[][] guessedEncrypts = guessEncrypts(encrypts);
-        for (byte[] guessedEncrypt : guessedEncrypts) {
-            System.out.println(new String(guessedEncrypt));
-        }
     }
 
     private static byte[][] guessEncrypts(byte[][] encrypts) {
@@ -127,5 +119,13 @@ public class BreakCTRWithSubstitutions {
             res[i] = Utils.xorBytes(one, two);
         }
         return res;
+    }
+
+    public static void main(String[] args) throws NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException {
+        byte[][] encrypts = getCTREncrypts(base64Strings);
+        byte[][] guessedEncrypts = guessEncrypts(encrypts);
+        for (byte[] guessedEncrypt : guessedEncrypts) {
+            System.out.println(new String(guessedEncrypt));
+        }
     }
 }
