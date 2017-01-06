@@ -14,7 +14,7 @@ public class CTR {
     static byte[] encrypt(byte[] data, byte[] key, int nonce) throws InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException {
         int blockSize = key.length;
         int numBlocks = getNumBlocks(data.length, blockSize);
-        byte[] nonceBytes = Utils.intToBytesLittleEndian(nonce, 8);
+        byte[] nonceBytes = Utils.numToBytesLittleEndian(nonce, 8);
         byte[] res = new byte[data.length];
         for (int curBlockIndex = 0; curBlockIndex < numBlocks; curBlockIndex++) {
             int from = curBlockIndex * blockSize;
@@ -41,7 +41,7 @@ public class CTR {
 
     private static byte[] generateCtrKey(byte[] key, byte[] nonceBytes, int blockIndex) throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
         byte[] data = new byte[16];
-        byte[] blockIndexBytes = Utils.intToBytesLittleEndian(blockIndex, 8);
+        byte[] blockIndexBytes = Utils.numToBytesLittleEndian(blockIndex, 8);
         System.arraycopy(nonceBytes, 0, data, 0, nonceBytes.length);
         System.arraycopy(blockIndexBytes, 0, data, nonceBytes.length, blockIndexBytes.length);
         return Utils.ECBEncrypt(data, key);

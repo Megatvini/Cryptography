@@ -178,7 +178,7 @@ public class Utils {
         return res;
     }
 
-    static byte[] intToBytesLittleEndian(int num, int numBytes) {
+    static byte[] numToBytesLittleEndian(long num, int numBytes) {
         byte[] res = new byte[numBytes];
         for (int i = 0; i < numBytes; i++) {
             byte curByte = (byte) (num % 256);
@@ -195,6 +195,13 @@ public class Utils {
         while (sc.hasNext())
             res.add(sc.nextLine());
         sc.close();
+        return res;
+    }
+
+    static byte[] concat(byte[] left, byte[] right) {
+        byte[] res = new byte[left.length + right.length];
+        System.arraycopy(left, 0, res, 0, left.length);
+        System.arraycopy(right, 0, res, left.length, right.length);
         return res;
     }
 }
